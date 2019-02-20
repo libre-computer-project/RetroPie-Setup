@@ -16,7 +16,7 @@ rp_module_section=""
 rp_module_flags=""
 
 function get_ver_sdl2() {
-    echo "2.0.8"
+    isPlatform "mali-drm-gles2" && echo "2.0.9" || echo "2.0.8"
 }
 
 function get_pkg_ver_sdl2() {
@@ -38,6 +38,7 @@ function depends_sdl2() {
     isPlatform "rpi" && depends+=(libraspberrypi-dev)
     isPlatform "mali" && depends+=(mali-fbdev)
     isPlatform "kms" && depends+=(libdrm-dev libgbm-dev)
+    isPlatform "mali-drm-gles2" && depends+=(libegl1-mesa-dev libsamplerate0-dev)
     isPlatform "x11" && depends+=(libpulse-dev libegl1-mesa-dev libgles2-mesa-dev libglu1-mesa-dev libx11-dev libxcursor-dev libxext-dev libxi-dev libxinerama-dev libxrandr-dev libxss-dev libxt-dev libxxf86vm-dev libgl1-mesa-dev)
     isPlatform "vero4k" && depends+=(vero3-userland-dev-osmc)
     getDepends "${depends[@]}"
@@ -67,7 +68,12 @@ function build_sdl2() {
         # disable vulkan and X11 video support
         sed -i 's/confflags =/confflags = --disable-video-vulkan --disable-video-x11 \\\n/' ./debian/rules
     fi
-
+    if isPlatform "mali-drm-gles2"; then
+        # remove harmful (mesa) and un-needed (X11) dependancies from debian package control
+        sed -i '/^\s*lib.*x\|mesa/ d' ./debian/control
+        # disable vulkan and X11 video support
+        sed -i 's/confflags =/confflags = --disable-video-vulkan --disable-video-x11 \\\n/' ./debian/rules
+    fi
     dpkg-buildpackage
     md_ret_require="$md_build/libsdl2-dev_$(get_pkg_ver_sdl2)_$(get_arch_sdl2).deb"
     local dest="$__tmpdir/archives/$__os_codename/$__platform"
