@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-
 # This file is part of The RetroPie Project
 #
 # The RetroPie Project is the legal property of its developers, whose names are
@@ -125,7 +124,7 @@ function depends_emulationstation() {
     local depends=(
         libfreeimage-dev libfreetype6-dev
         libcurl4-openssl-dev libasound2-dev cmake libsdl2-dev libsm-dev
-        libvlc-dev libvlccore-dev vlc rapidjson-dev
+        libvlc-dev libvlccore-dev vlc rapidjson-dev libfreeimage-dev libcec-dev libp8-platform-dev
     )
 
     isPlatform "x11" && depends+=(gnome-terminal)
@@ -142,7 +141,12 @@ function sources_emulationstation() {
 
 function build_emulationstation() {
     rpSwap on 1000
-    cmake . -DFREETYPE_INCLUDE_DIRS=/usr/include/freetype2/
+    if isPlatform "mali-drm-gles2"; then
+	sed -i "s/GLES\/gl.h/SDL_opengles.h/" "$md_build/es-core/src/platform.h"
+    	cmake . -DFREETYPE_INCLUDE_DIRS=/usr/include/freetype2/ -DGLES=ON -DOPENGLES_gl_LIBRARY=/usr/local/lib/`gcc -dumpmachine`/mali/libGLESv1_CM.so
+    else
+	cmake . -DFREETYPE_INCLUDE_DIRS=/usr/include/freetype2/
+    fi
     make clean
     make
     rpSwap off
@@ -159,6 +163,7 @@ function install_emulationstation() {
         'resources'
         'THEMES.md'
     )
+    md_ret_files+=(resources)
 }
 
 function init_input_emulationstation() {
