@@ -220,6 +220,7 @@ function get_rpi_video() {
 
 function get_platform() {
     local architecture="$(uname --machine)"
+
     if [[ -z "$__platform" ]]; then
         case "$(sed -n '/^Hardware/s/^.*: \(.*\)/\1/p' < /proc/cpuinfo)" in
             BCM*)
@@ -330,6 +331,13 @@ function platform_odroid-c2() {
     __default_cflags+=" -ftree-vectorize -funsafe-math-optimizations"
     __default_asflags=""
     __default_makeflags="-j2"
+}
+function platform_mali-drm-gles2(){
+    __default_cflags="-O2 -march=native"
+    __platform_flags="`uname -m` kms gles mali-drm-gles2"
+    __default_cflags+=" -ftree-vectorize -funsafe-math-optimizations"
+    __default_asflags=""
+    __default_makeflags="-j4"
 }
 
 function platform_odroid-xu() {
