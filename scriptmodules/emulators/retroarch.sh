@@ -20,6 +20,7 @@ function depends_retroarch() {
     isPlatform "mali" && depends+=(mali-fbdev)
     isPlatform "x11" && depends+=(libx11-xcb-dev libpulse-dev libvulkan-dev)
     isPlatform "vero4k" && depends+=(vero3-userland-dev-osmc zlib1g-dev libfreetype6-dev)
+    isPlatform "mali-drm-gles2" && depends+=(zlib1g-dev libfreetype6-dev libxml2-dev libv4l-dev libflac-dev libminiupnpc-dev libvulkan-dev libass-dev)
 
     if compareVersions "$__os_debian_ver" ge 9; then
         depends+=(libavcodec-dev libavformat-dev libavdevice-dev)
@@ -57,6 +58,7 @@ function build_retroarch() {
     isPlatform "arm" && params+=(--enable-floathard)
     isPlatform "neon" && params+=(--enable-neon)
     isPlatform "x11" && params+=(--enable-vulkan)
+    isPlatform "mali-drm-gles2" && params+=(--with-opengles_libs="-L/usr/local/lib/`gcc -dumpmachine`/mali" --with-opengles_cflags='-I/usr/local/include')
     isPlatform "vero4k" && params+=(--enable-mali_fbdev --with-opengles_libs='-L/opt/vero3/lib')
     ./configure --prefix="$md_inst" "${params[@]}"
     make clean
