@@ -28,6 +28,8 @@ function sources_ppsspp() {
         gitPullOrClone "$md_build/ppsspp" https://github.com/hrydgard/ppsspp.git
     elif isPlatform "vero4k"; then
         gitPullOrClone "$md_build/ppsspp" https://github.com/hrydgard/ppsspp.git
+    elif isPlatform "mali-drm-gles2"; then
+        gitPullOrClone "$md_build/ppsspp" https://github.com/hrydgard/ppsspp.git
     else
         gitPullOrClone "$md_build/ppsspp" https://github.com/hrydgard/ppsspp.git v1.5.4
     fi
@@ -35,12 +37,18 @@ function sources_ppsspp() {
 
     if isPlatform "tinker"; then
         applyPatch "$md_data/02_tinker_options.diff"
+    elif isPlatform "aarch64"; then
+	applyPatch "$md_data/03_aarch64_pic.diff"
     elif ! isPlatform "vero4k"; then
         applyPatch "$md_data/01_egl_name.diff"
+    fi
+    if isPlatform "mali-drm-gles2"; then
+	applyPatch "$md_data/04_gles3_disable.diff"
     fi
 
     # remove the lines that trigger the ffmpeg build script functions - we will just use the variables from it
     sed -i "/^build_ARMv6$/,$ d" ffmpeg/linux_arm.sh
+    sed -i "/^build_ARM64$/,$ d" ffmpeg/linux_arm64.sh
 
     # remove -U__GCC_HAVE_SYNC_COMPARE_AND_SWAP_2 as we handle this ourselves if armv7 on Raspbian
     sed -i "/^  -U__GCC_HAVE_SYNC_COMPARE_AND_SWAP_2/d" cmake/Toolchains/raspberry.armv7.cmake
@@ -85,7 +93,7 @@ function build_ffmpeg_ppsspp() {
     local GENERAL
     local OPTS # used by older lr-ppsspp fork
     # get the ffmpeg configure variables from the ppsspp ffmpeg distributed script
-    source linux_arm.sh
+    source linux_$arch.sh
     # linux_arm.sh has set -e which we need to switch off
     set +e
     ./configure $extra_params \
@@ -136,6 +144,8 @@ function build_ppsspp() {
         fi
     elif isPlatform "mali"; then
         params+=(-DUSING_GLES2=ON -DUSING_FBDEV=ON)
+    elif isPlatform "mali-drm-gles2"; then
+        params+=(-DCMAKE_TOOLCHAIN_FILE="$md_data/mali-drm-gles2.`uname -m`.cmake")
     elif isPlatform "tinker"; then
         params+=(-DCMAKE_TOOLCHAIN_FILE="$md_data/tinker.armv7.cmake")
     elif isPlatform "vero4k"; then
@@ -163,6 +173,8 @@ function configure_ppsspp() {
     ln -snf "$romdir/psp" "$md_conf_root/psp/PSP/GAME"
 
     if isPlatform "tinker"; then
+        addEmulator 1 "$md_id" "psp" "$md_inst/PPSSPPSDL --fullscreen %ROM%"
+    elif isPlatform "mali-drm-gles2"; then
         addEmulator 1 "$md_id" "psp" "$md_inst/PPSSPPSDL --fullscreen %ROM%"
     else
         addEmulator 0 "$md_id" "psp" "$md_inst/PPSSPPSDL %ROM%"

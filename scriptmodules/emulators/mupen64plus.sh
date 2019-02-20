@@ -22,6 +22,7 @@ function depends_mupen64plus() {
     isPlatform "x11" && depends+=(libglew-dev libglu1-mesa-dev libboost-filesystem-dev)
     isPlatform "x86" && depends+=(nasm)
     isPlatform "vero4k" && depends+=(vero3-userland-dev-osmc libboost-all-dev)
+    isPlatform "mali-drm-gles2" && depends+=(libboost-all-dev)
     getDepends "${depends[@]}"
 }
 
@@ -42,6 +43,12 @@ function sources_mupen64plus() {
             'gizmo98 audio-omx'
             'ricrpi video-gles2rice pandora-backport'
             'ricrpi video-gles2n64'
+        )
+    elif isPlatform "mali-drm-gles2"; then
+        repos+=(
+            'ricrpi video-gles2n64'
+            'mupen64plus video-glide64mk2'
+            'ricrpi video-gles2rice pandora-backport'
         )
     elif isPlatform "vero4k"; then
         repos+=(
@@ -85,6 +92,7 @@ function build_mupen64plus() {
             isPlatform "neon" && params+=("NEON=1")
             isPlatform "x11" && params+=("OSD=1" "PIE=1")
             isPlatform "x86" && params+=("SSE=SSE2")
+            isPlatform "mali_kms_gles2" && params+=("USE_GLES=1")
             isPlatform "vero4k" && params+=("HOST_CPU=armv8" "USE_GLES=1")
 
             [[ "$dir" == "mupen64plus-ui-console" ]] && params+=("COREDIR=$md_inst/lib/" "PLUGINDIR=$md_inst/lib/mupen64plus/")
@@ -103,6 +111,8 @@ function build_mupen64plus() {
         params+=("-DCRC_ARMV8=On")
     elif isPlatform "vero4k"; then
         params+=("-DVERO4K=On" "-DCRC_ARMV8=On" "-DEGL=On")
+    elif isPlatform "aarch64"; then
+        params+=("-DCRC_ARMV8=On" "-DEGL=On")
     else
         params+=("-DCRC_OPT=On")
     fi
@@ -154,6 +164,8 @@ function install_mupen64plus() {
             isPlatform "neon" && params+=("NEON=1")
             isPlatform "x86" && params+=("SSE=SSE2")
             isPlatform "vero4k" && params+=("HOST_CPU=armv8" "USE_GLES=1")
+            isPlatform "mali-drm-gles2" && params+=("USE_GLES=1")
+            isPlatform "aarch64" && params+=("HOST_CPU=armv8")
             make -C "$source/projects/unix" PREFIX="$md_inst" OPTFLAGS="$CFLAGS -O3 -flto" "${params[@]}" install
         fi
     done
@@ -175,6 +187,12 @@ function configure_mupen64plus() {
         done
         addEmulator 0 "${md_id}-gles2n64" "n64" "$md_inst/bin/mupen64plus.sh mupen64plus-video-n64 %ROM%"
         addEmulator 1 "${md_id}-auto" "n64" "$md_inst/bin/mupen64plus.sh AUTO %ROM%"
+    elif isPlatform "mali-drm-gles2"; then
+        addEmulator 1 "${md_id}-gles2n64" "n64" "$md_inst/bin/mupen64plus.sh mupen64plus-video-n64 %ROM%"
+        addEmulator 0 "${md_id}-GLideN64" "n64" "$md_inst/bin/mupen64plus.sh mupen64plus-video-GLideN64 %ROM%"
+        addEmulator 0 "${md_id}-glide64" "n64" "$md_inst/bin/mupen64plus.sh mupen64plus-video-glide64mk2 %ROM%"
+        addEmulator 0 "${md_id}-gles2rice" "n64" "$md_inst/bin/mupen64plus.sh mupen64plus-video-rice %ROM%"
+        addEmulator 0 "${md_id}-auto" "n64" "$md_inst/bin/mupen64plus.sh AUTO %ROM%"
     elif isPlatform "vero4k"; then
         addEmulator 1 "${md_id}-gles2n64" "n64" "$md_inst/bin/mupen64plus.sh mupen64plus-video-n64 %ROM%"
         addEmulator 0 "${md_id}-GLideN64" "n64" "$md_inst/bin/mupen64plus.sh mupen64plus-video-GLideN64 %ROM%"

@@ -1,0 +1,185 @@
+diff --git a/GPU/GLES/DrawEngineGLES.cpp b/GPU/GLES/DrawEngineGLES.cpp
+index a60549a..7e71a80 100644
+--- a/GPU/GLES/DrawEngineGLES.cpp
++++ b/GPU/GLES/DrawEngineGLES.cpp
+@@ -185,9 +185,11 @@ void DrawEngineGLES::DestroyDeviceObjects() {
+ 		bufferNameInfo_.clear();
+ 		freeSizedBuffers_.clear();
+ 		bufferNameCacheSize_ = 0;
++/*
+ 		if (sharedVao_ != 0) {
+ 			glDeleteVertexArrays(1, &sharedVao_);
+ 		}
++*/
+ 	}
+ }
+ 
+diff --git a/GPU/GLES/FramebufferManagerGLES.cpp b/GPU/GLES/FramebufferManagerGLES.cpp
+index 37706d0..64ea6a8 100644
+--- a/GPU/GLES/FramebufferManagerGLES.cpp
++++ b/GPU/GLES/FramebufferManagerGLES.cpp
+@@ -592,13 +592,15 @@ void FramebufferManagerGLES::UpdateDownloadTempBuffer(VirtualFramebuffer *nvfb)
+ 	_assert_msg_(G3D, nvfb->fbo, "Expecting a valid nvfb in UpdateDownloadTempBuffer");
+ 
+ 	// Discard the previous contents of this buffer where possible.
++	/*
+ 	if (gl_extensions.GLES3 && glInvalidateFramebuffer != nullptr) {
+ 		draw_->BindFramebufferAsRenderTarget(nvfb->fbo, { Draw::RPAction::DONT_CARE, Draw::RPAction::DONT_CARE });
+ 		GLenum attachments[3] = { GL_COLOR_ATTACHMENT0, GL_STENCIL_ATTACHMENT, GL_DEPTH_ATTACHMENT };
+ 		glInvalidateFramebuffer(GL_FRAMEBUFFER, 3, attachments);
+ 	} else if (gl_extensions.IsGLES) {
+-		draw_->BindFramebufferAsRenderTarget(nvfb->fbo, { Draw::RPAction::CLEAR, Draw::RPAction::CLEAR });
+-	}
++	*/
++	draw_->BindFramebufferAsRenderTarget(nvfb->fbo, { Draw::RPAction::CLEAR, Draw::RPAction::CLEAR });
++	//}
+ 	CHECK_GL_ERROR_IF_DEBUG();
+ }
+ 
+@@ -925,6 +927,7 @@ void FramebufferManagerGLES::PackFramebufferSync_(VirtualFramebuffer *vfb, int x
+ 	}
+ 
+ 	// TODO: Move this into Thin3d.
++	/*
+ 	if (gl_extensions.GLES3 && glInvalidateFramebuffer != nullptr) {
+ #ifdef USING_GLES2
+ 		// GLES3 doesn't support using GL_READ_FRAMEBUFFER here.
+@@ -936,6 +939,7 @@ void FramebufferManagerGLES::PackFramebufferSync_(VirtualFramebuffer *vfb, int x
+ 		GLenum attachments[3] = { GL_COLOR_ATTACHMENT0, GL_DEPTH_ATTACHMENT, GL_STENCIL_ATTACHMENT };
+ 		glInvalidateFramebuffer(target, 3, attachments);
+ 	}
++	*/
+ 	CHECK_GL_ERROR_IF_DEBUG();
+ }
+ 
+@@ -988,6 +992,7 @@ void FramebufferManagerGLES::EndFrame() {
+ 		PackFramebufferAsync_(nullptr);
+ 
+ 	// Let's explicitly invalidate any temp FBOs used during this frame.
++	/*
+ 	if (gl_extensions.GLES3 && glInvalidateFramebuffer != nullptr) {
+ 		for (auto temp : tempFBOs_) {
+ 			if (temp.second.last_frame_used < gpuStats.numFlips) {
+@@ -1000,6 +1005,7 @@ void FramebufferManagerGLES::EndFrame() {
+ 		}
+ 		draw_->BindFramebufferAsRenderTarget(nullptr, { Draw::RPAction::KEEP , Draw::RPAction::KEEP });
+ 	}
++	*/
+ 	CHECK_GL_ERROR_IF_DEBUG();
+ }
+ 
+diff --git a/GPU/GLES/ShaderManagerGLES.cpp b/GPU/GLES/ShaderManagerGLES.cpp
+index 46146f7..e02d200 100644
+--- a/GPU/GLES/ShaderManagerGLES.cpp
++++ b/GPU/GLES/ShaderManagerGLES.cpp
+@@ -121,12 +121,14 @@ LinkedShader::LinkedShader(VShaderID VSID, Shader *vs, FShaderID FSID, Shader *f
+ 		glBindFragDataLocation(program, 0, "fragColor0");
+ 	}
+ #elif !defined(IOS)
++/*
+ 	if (gl_extensions.GLES3) {
+ 		if (gstate_c.featureFlags & GPU_SUPPORTS_DUALSOURCE_BLEND) {
+ 			glBindFragDataLocationIndexedEXT(program, 0, 0, "fragColor0");
+ 			glBindFragDataLocationIndexedEXT(program, 0, 1, "fragColor1");
+ 		}
+ 	}
++*/
+ #endif
+ 
+ 	glLinkProgram(program);
+diff --git a/Windows/GEDebugger/SimpleGLWindow.cpp b/Windows/GEDebugger/SimpleGLWindow.cpp
+index 1734bea..8533316 100644
+--- a/Windows/GEDebugger/SimpleGLWindow.cpp
++++ b/Windows/GEDebugger/SimpleGLWindow.cpp
+@@ -74,9 +74,11 @@ SimpleGLWindow::SimpleGLWindow(HWND wnd)
+ }
+ 
+ SimpleGLWindow::~SimpleGLWindow() {
++/*
+ 	if (vao_ != 0) {
+ 		glDeleteVertexArrays(1, &vao_);
+ 	}
++*/
+ 	if (drawProgram_ != nullptr) {
+ 		glsl_destroy(drawProgram_);
+ 	}
+@@ -645,4 +647,4 @@ LRESULT CALLBACK SimpleGLWindow::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPA
+ 	}
+ 	
+ 	return DefWindowProc(hwnd, msg, wParam, lParam);
+-}
+\ No newline at end of file
++}
+diff --git a/ext/native/gfx_es2/gl3stub.c b/ext/native/gfx_es2/gl3stub.c
+index f891c11..70ca17b 100644
+--- a/ext/native/gfx_es2/gl3stub.c
++++ b/ext/native/gfx_es2/gl3stub.c
+@@ -16,7 +16,7 @@
+ 
+ #include "../gfx/gl_common.h"
+ 
+-#if defined(USING_GLES2)
++#if 0
+ #if !defined(IOS)
+ #include "EGL/egl.h"
+ #endif
+diff --git a/ext/native/gfx_es2/gpu_features.cpp b/ext/native/gfx_es2/gpu_features.cpp
+index c758645..a26b086 100644
+--- a/ext/native/gfx_es2/gpu_features.cpp
++++ b/ext/native/gfx_es2/gpu_features.cpp
+@@ -211,7 +211,7 @@ void CheckGLExtensions() {
+ 			// number of times. Make sure to check for 3.0 in the shader version too to avoid false positives, see #5584.
+ 			bool gl_3_0_in_string = strstr(versionStr, "3.0") && (glslVersionStr && strstr(glslVersionStr, "3.0"));
+ 			bool gl_3_1_in_string = strstr(versionStr, "3.1") && (glslVersionStr && strstr(glslVersionStr, "3.1"));  // intentionally left out .1
+-			if ((gl_3_0_in_string || gl_3_1_in_string) && gl3stubInit()) {
++/*			if ((gl_3_0_in_string || gl_3_1_in_string) && gl3stubInit()) {
+ 				gl_extensions.ver[0] = 3;
+ 				if (gl_3_1_in_string) {
+ 					gl_extensions.ver[1] = 1;
+@@ -223,14 +223,16 @@ void CheckGLExtensions() {
+ 				}
+ 			} else {
+ 				// Just to be safe.
++*/
+ 				gl_extensions.ver[0] = 2;
+ 				gl_extensions.ver[1] = 0;
+-			}
++/*			}
+ 		} else {
+ 			// Otherwise, let's trust GL_MAJOR_VERSION.  Note that Mali is intentionally not banned here.
+ 			if (gl_extensions.ver[0] >= 3) {
+ 				gl_extensions.GLES3 = gl3stubInit();
+ 			}
++*/
+ 		}
+ #endif
+ 
+diff --git a/ext/native/thin3d/thin3d_gl.cpp b/ext/native/thin3d/thin3d_gl.cpp
+index db6dac8..b31b674 100644
+--- a/ext/native/thin3d/thin3d_gl.cpp
++++ b/ext/native/thin3d/thin3d_gl.cpp
+@@ -972,9 +972,11 @@ Texture *OpenGLContext::CreateTexture(const TextureDesc &desc) {
+ }
+ 
+ OpenGLInputLayout::~OpenGLInputLayout() {
++/*
+ 	if (id_) {
+ 		glDeleteVertexArrays(1, &id_);
+ 	}
++*/
+ }
+ 
+ void OpenGLInputLayout::Compile() {
+@@ -1768,10 +1770,12 @@ void OpenGLContext::CopyFramebufferImage(Framebuffer *fbsrc, int srcLevel, int s
+ 	}
+ #if defined(USING_GLES2)
+ #ifndef IOS
++/*
+ 	glCopyImageSubDataOES(
+ 		srcTex, target, srcLevel, srcX, srcY, srcZ,
+ 		dstTex, target, dstLevel, dstX, dstY, dstZ,
+ 		width, height, depth);
++*/
+ #endif
+ #else
+ 	if (gl_extensions.ARB_copy_image) {

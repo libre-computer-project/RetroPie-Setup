@@ -52,6 +52,7 @@ function build_lr-mupen64plus() {
         isPlatform "arm" && params+=(WITH_DYNAREC=arm)
         isPlatform "neon" && params+=(HAVE_NEON=1)
         isPlatform "gles" && params+=(FORCE_GLES=1)
+        isPlatform "mali-drm-gles2" && params+=(FORCE_GLES=1)
         isPlatform "kms" && params+=(FORCE_GLES3=1)
     fi
     make clean

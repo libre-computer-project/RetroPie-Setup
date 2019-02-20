@@ -25,6 +25,9 @@ function depends_amiberry() {
     if isPlatform "vero4k"; then
         depends+=(vero3-userland-dev-osmc libmpg123-dev libxml2-dev libflac-dev)
         getDepends "${depends[@]}"
+    elif isPlatform "mali-drm-gles2"; then
+        depends+=(libmpg123-dev libxml2-dev libflac-dev)
+        getDepends "${depends[@]}"
     else
         depends_uae4arm "${depends[@]}"
     fi

@@ -1,0 +1,13 @@
+diff --git a/ffmpeg/linux_arm64.sh b/ffmpeg/linux_arm64.sh
+index 80e608d..517e418 100755
+--- a/ffmpeg/linux_arm64.sh
++++ b/ffmpeg/linux_arm64.sh
+@@ -4,6 +4,7 @@ set -e
+ 
+ GENERAL="\
+    --enable-cross-compile \
++   --enable-pic \
+    --extra-libs="-lgcc" \
+    --arch=aarch64 \
+    --cc=aarch64-linux-gnu-gcc \
+
